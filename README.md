@@ -11,24 +11,64 @@ type to fit the data.
 4. Store the results in an array
 5. Represent the result in graphical representation as given below.
 ### PROGRAM:
-import matplotlib.pyplot as plt
-
+```
+import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+file_path = "Gold Price Prediction.csv"
+data = pd.read_csv(file_path)
+data['Date'] = pd.to_datetime(data['Date'], errors='coerce')
+data.dropna(subset=['Date'], inplace=True)
+data.set_index('Date', inplace=True)
+if 'Price Today' not in data.columns:
+    print("Error: 'Price Today' column not found!")
+else:
+    data['Price Today'] = pd.to_numeric(data['Price Today'], errors='coerce')
+    data.dropna(subset=['Price Today'], inplace=True)
+    print("Missing values in 'Price Today':", data['Price Today'].isna().sum())
+    print("Unique values in 'Price Today':", data['Price Today'].nunique())
+    if data['Price Today'].nunique() > 1:
+        prices = data['Price Today'].values
+```
+#### Mean and Variance : 
+```
+        mean_price = np.mean(prices)
+        variance_price = np.var(prices)
+        print(f"Mean: {mean_price}, Variance: {variance_price}")
+```
 
-data = [3, 16, 156, 47, 246, 176, 233, 140, 130,
-101, 166, 201, 200, 116, 118, 247,
-209, 52, 153, 232, 128, 27, 192, 168, 208,
-187, 228, 86, 30, 151, 18, 254,
-76, 112, 67, 244, 179, 150, 89, 49, 83, 147, 90,
-33, 6, 158, 80, 35, 186, 127]
+#### Normalized data :   
+```
+        normalized_prices = prices - mean_price
+```
 
-lags = range(35)
+#### Compute autocorrelation function (ACF)
+```
+        max_lag = 35
+        acf_values = np.zeros(max_lag + 1)
+        n = len(prices)
+        for lag in range(max_lag + 1):
+            autocovariance = np.sum(normalized_prices[:n-lag] * normalized_prices[lag:]) / n
+            acf_values[lag] = autocovariance / variance_price
+```
 
+##### display the graph
+```
+        plt.figure(figsize=(10, 6))
+        plt.stem(range(max_lag + 1), acf_values, linefmt='b-', markerfmt='bo', basefmt='k-')
+        plt.title('Autocorrelation Function (ACF) of Gold Prices')
+        plt.xlabel('Lags')
+        plt.ylabel('ACF')
+        plt.grid(True)
+        plt.show()
+    else:
+        print("Error: 'Price Today' contains only one unique value. ACF cannot be computed.")
+```
 
 #Pre-allocate autocorrelation table
 
-#Mean
 
+#Mean
 #Variance
 
 #Normalized data
